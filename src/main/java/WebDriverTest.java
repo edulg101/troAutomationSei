@@ -18,14 +18,7 @@ public class WebDriverTest {
         // instanciando:
         Scanner sc = new Scanner(System.in);
 
-        System.out.print("Quantos TROs serão registrados? ");
-        int vezes = sc.nextInt();
 
-        System.out.print("nome usuario: ");
-        String user = sc.next();
-
-        System.out.print("senha: ");
-        String password = sc.next();
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
@@ -35,7 +28,6 @@ public class WebDriverTest {
 
         List<String> troListCreated = new ArrayList<>();
 
-
         System.setProperty("webdriver.chrome.driver", "E:\\chromedriver.exe");
 
         WebDriver driver = new ChromeDriver();
@@ -44,15 +36,22 @@ public class WebDriverTest {
 
         Screen s = new Screen();
 
-        int test = 782;
-
         String mainWindow = driver.getWindowHandle();
 
         String secondWindow = "";
 
-        int troNumber = 0;
 
         //fim estanciação
+
+        System.out.print("Quantos TROs serão registrados? ");
+        int vezes = sc.nextInt();
+
+        System.out.print("nome usuario: ");
+        String user = sc.next();
+
+        System.out.print("senha: ");
+        String password = sc.next();
+
 
         System.out.println("abrindo chrome");
 
@@ -104,7 +103,6 @@ public class WebDriverTest {
             wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("[src='imagens/sei_incluir_documento.gif']")));
             driver.findElement(By.cssSelector("[src='imagens/sei_incluir_documento.gif']")).click();
 
-
             wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[data-desc='tro - suinf']")));
 
             driver.findElement(By.cssSelector("[data-desc='tro - suinf']")).click();
@@ -116,8 +114,6 @@ public class WebDriverTest {
             driver.findElement(By.id("btnSalvar")).click();
 
             closeAllPopupWindows(driver, mainWindow);
-
-
 
             System.out.println("Fim Criação Tro");
 
@@ -133,6 +129,7 @@ public class WebDriverTest {
             expandTree(driver);
 
             List<String> spanText = new ArrayList<String>();
+
             List<WebElement> we = driver.findElements(By.xpath("//span[text()[contains(.,'TRO - SUINF')]]"));
             for (WebElement w : we) {
                 spanText.add(w.getText());
@@ -199,31 +196,6 @@ public class WebDriverTest {
 
 
         for (String tro : troListCreated) {
-
-            // anexar imagem do TRO Correspondente
-
-//            driver.switchTo().defaultContent();
-//            switchToFrame(driver, "ifrArvore");
-//
-//
-//            wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//span[text()[contains(.,'TRO - SUINF "+ tro +"')]]")));
-//
-//            driver.findElement(By.xpath("//span[text()[contains(.,'TRO - SUINF "+ tro +"')]]")).click();
-//
-//
-//            driver.switchTo().defaultContent();
-//
-//            switchToFrame(driver, "ifrVisualizacao");
-//
-//            wait.until(ExpectedConditions.titleIs("Consultar/Alterar Documento Externo"));
-//            driver.findElement(By.cssSelector("[title='Consultar/Alterar Documento Externo']")).click();
-//
-//            WebElement fileInput = driver.findElement(By.id("filArquivo"));
-//            fileInput.sendKeys("C:\\Users\\elg10.DESKTOP-E8CTNI7\\OneDrive - ANTT- Agencia Nacional de Transportes Terrestres\\CRO\\Relatorios RTA\\" + tro + ".pdf");
-//            Thread.sleep(5000);
-
-//        driver.findElement(By.id("btnSalvar")).click();
-
 
             // colar tro
 
@@ -332,7 +304,7 @@ public class WebDriverTest {
                     waitAndClickById(driver, wait, "btnAssinar");
 
                     // criei uma lista de tro criados.
-//                com essa lista, deve depois criar os Anexos.
+                    // com essa lista, deve depois criar os Anexos.
 
                     // checar em qual pegou no bloco try abaixo.. mas funcionou !
 
@@ -360,10 +332,7 @@ public class WebDriverTest {
                     wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[class='infraTrAcessada']")));
                     waitAndClickById(driver, wait, "btnSalvar");
 
-//                }
-//            }
         }
-
 
     }
 
@@ -401,16 +370,6 @@ public class WebDriverTest {
         }
         System.out.print("....feito !");
     }
-
-//    private static void switchToFrame0(WebDriver driver){
-//        driver.switchTo().defaultContent();
-//        driver.switchTo().frame(0);
-//    }
-
-//    private static void switchToFrame1(WebDriver driver){
-//        driver.switchTo().defaultContent();
-//        driver.switchTo().frame(1);
-//    }
 
     private static void closeAllPopupWindows(WebDriver driver, String mainWindow) {
         for (String windowHandle : driver.getWindowHandles()) {
