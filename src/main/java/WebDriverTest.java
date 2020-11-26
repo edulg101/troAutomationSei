@@ -1,4 +1,5 @@
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -14,13 +15,11 @@ public class WebDriverTest {
 
     public static void main(String[] args) throws InterruptedException, FindFailed {
 
-
         // instanciando:
-        Scanner sc = new Scanner(System.in);
-
-
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+        Scanner sc = new Scanner (System.in);
 
         Date today = new Date();
 
@@ -28,30 +27,177 @@ public class WebDriverTest {
 
         List<String> troListCreated = new ArrayList<>();
 
+        String password = "xxx";
+
+        String user = "xxx";
+
+        String processo = "50520.009852/2020-13";
+
+        int resp = 0;
+
+       while( resp != 1 && resp != 2 && resp != 3) {
+           System.out.println("1 - Criar e Colar os TROs e Anexos\n" +
+                   "2 - somente Colar Tros e Anexos \n" +
+                   "3 - liberar para Assinatura");
+
+           resp = sc.nextInt();
+           sc.nextLine();
+           if (resp == 2) {
+               System.out.print("Digite o numero do primeiro TRO : ");
+               int primeiroTro = sc.nextInt();
+               sc.nextLine();
+
+               System.out.print("Digite o numero do ultimo TRO : ");
+               int ultimoTro = sc.nextInt();
+               sc.nextLine();
+
+               List<String> troListParaColar = new ArrayList<>();
+
+               for (int i = primeiroTro; i <= ultimoTro; i++) {
+                   troListParaColar.add(Integer.toString(i));
+               }
+
+               WebDriver driver = openBrowserAndProcesso(user, password, processo);
+
+               colarTrosEAnexos(driver, troListParaColar, password);
+
+               System.exit(0);
+           } else if (resp == 3) {
+
+               System.out.print("Digite o numero do primeiro TRO : ");
+               int primeiroTro = sc.nextInt();
+               sc.nextLine();
+
+               System.out.print("Digite o numero do ultimo TRO : ");
+               int ultimoTro = sc.nextInt();
+               sc.nextLine();
+
+               List<String> troListParaColar = new ArrayList<>();
+
+               for (int i = primeiroTro; i <= ultimoTro; i++) {
+                   troListParaColar.add(Integer.toString(i));
+               }
+
+               WebDriver driver = openBrowserAndProcesso(user, password, processo);
+               WebDriverWait wait = new WebDriverWait(driver, 30);
+
+               liberarParaAssinatura(driver, wait, troListParaColar);
+               System.exit(0);
+
+           } else if (resp == 1) {
+               System.out.print("Quantos TROs serão registrados? ");
+
+               int vezes = sc.nextInt();
+               sc.nextLine();
+
+               WebDriver driver = openBrowserAndProcesso(user, password, processo);
+
+               String mainWindow = driver.getWindowHandle();
+               WebDriverWait wait = new WebDriverWait(driver, 30);
+
+               for (int i = 1; i <= vezes; i++) {
+
+                   driver.switchTo().defaultContent();
+
+                   switchToFrame(driver, "ifrArvore");
+
+                   waitToBeClickableAndClickById(driver, wait, "topmenu");
+
+                   Thread.sleep(500);
+
+                   waitToBeClickableAndClickById(driver, wait, "topmenu");
+
+                   driver.switchTo().defaultContent();
+                   wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("ifrVisualizacao")));
+
+
+                   wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("[src='imagens/sei_incluir_documento.gif']")));
+                   driver.findElement(By.cssSelector("[src='imagens/sei_incluir_documento.gif']")).click();
+
+                   wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[data-desc='tro - suinf']")));
+
+                   driver.findElement(By.cssSelector("[data-desc='tro - suinf']")).click();
+
+                   waitAndClickById(driver, wait, "lblProtocoloDocumentoTextoBase");
+                   driver.findElement(By.id("txtProtocoloDocumentoTextoBase")).sendKeys("2418322");
+
+                   driver.findElement(By.id("lblPublico")).click();
+                   driver.findElement(By.id("btnSalvar")).click();
+
+                   closeAllPopupWindows(driver, mainWindow);
+
+                   System.out.println("Fim Criação Tro");
+
+                   System.out.println("Inicio Criação Anexo Em Branco");
+
+                   switchToFrame(driver, "ifrArvore");
+
+                   waitToBeClickableAndClickById(driver, wait, "topmenu");
+                   driver.findElement(By.id("topmenu")).click();
+
+                   Thread.sleep(500);
+
+                   expandTree(driver);
+
+                   List<String> spanText = new ArrayList<String>();
+
+                   List<WebElement> we = driver.findElements(By.xpath("//span[text()[contains(.,'TRO - SUINF')]]"));
+                   for (WebElement w : we) {
+                       spanText.add(w.getText());
+                   }
+
+                   String troStr = spanText.get(spanText.size() - 1).substring(12, 16).trim();
+
+                   troListCreated.add(troStr);
+
+                   // clicar processo
+
+                   driver.findElement(By.id("topmenu")).click();
+
+                   Thread.sleep(3000);
+
+                   driver.switchTo().defaultContent();
+
+                   driver.switchTo().frame(1);
+
+                   //clica em novo documento
+                   driver.findElement(By.cssSelector("[src='imagens/sei_incluir_documento.gif']")).click();
+
+                   //clica em externo
+
+                   driver.findElement(By.cssSelector("[data-desc=' externo']")).click();
+
+                   // seleciona externo
+
+                   driver.findElement(By.id("selSerie")).click();
+                   driver.findElement(By.cssSelector("[value='263']")).click();
+
+                   driver.findElement(By.id("txtDataElaboracao")).sendKeys(todayStr);
+
+                   driver.findElement(By.id("txtNumero")).sendKeys("TRO " + troStr + "/2020");
+
+                   driver.findElement(By.id("lblNato")).click();
+
+                   // selecionar publico
+
+                   driver.findElement(By.id("lblPublico")).click();
+
+                   driver.findElement(By.id("btnSalvar")).click();
+
+                   // fim criação TRO e Anexo Em Branco
+               }
+               colarTrosEAnexos(driver, troListCreated, password);
+           } else {
+               System.out.println("tente novamente");
+           }
+       }
+    }
+
+    public static WebDriver openBrowserAndProcesso(String user, String password, String processo) throws InterruptedException {
+
         System.setProperty("webdriver.chrome.driver", "E:\\chromedriver.exe");
 
         WebDriver driver = new ChromeDriver();
-
-        WebDriverWait wait = new WebDriverWait(driver, 30);
-
-        Screen s = new Screen();
-
-        String mainWindow = driver.getWindowHandle();
-
-        String secondWindow = "";
-
-
-        //fim estanciação
-
-        System.out.print("Quantos TROs serão registrados? ");
-        int vezes = sc.nextInt();
-
-        System.out.print("nome usuario: ");
-        String user = sc.next();
-
-        System.out.print("senha: ");
-        String password = sc.next();
-
 
         System.out.println("abrindo chrome");
 
@@ -62,144 +208,49 @@ public class WebDriverTest {
         WebElement senha = driver.findElement(By.id("pwdSenha"));
         WebElement entrar = driver.findElement(By.id("sbmLogin"));
 
-
         usuario.sendKeys(user);
         senha.sendKeys(password);
         System.out.println("entrando com senha");
 
-
-        // para clicar no submit do formulario sei
         entrar.click();
 
         WebElement pesquisa = driver.findElement(By.id("txtPesquisaRapida"));
-        pesquisa.sendKeys("50520.009852/2020-13" + "\n");
+        pesquisa.sendKeys(processo + "\n");
         System.out.println("entrando com numero processo");
 
+        return driver;
+    }
 
-        for (int i = 1; i <= vezes; i++) {
+    public static void colarTrosEAnexos(WebDriver driver, List<String> troListCreated, String password ) throws InterruptedException {
 
-            // Criar TRO
+        Scanner scan = new Scanner(System.in);
 
-           driver.switchTo().defaultContent();
+        Screen s = new Screen();
 
-           switchToFrame(driver, "ifrArvore");
-
-            waitToBeClickableAndClickById(driver, wait, "topmenu");
-            try {
-                driver.findElement(By.id("topmenu")).click();
-                System.out.println("primeiro try");
-            }
-            catch (org.openqa.selenium.StaleElementReferenceException e) {
-                driver.findElement(By.id("topmenu")).click();
-                System.out.println("entrou no catch");
-            }
-
-            Thread.sleep(500);
-
-            driver.switchTo().defaultContent();
-            wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("ifrVisualizacao")));
-
-
-            wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("[src='imagens/sei_incluir_documento.gif']")));
-            driver.findElement(By.cssSelector("[src='imagens/sei_incluir_documento.gif']")).click();
-
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[data-desc='tro - suinf']")));
-
-            driver.findElement(By.cssSelector("[data-desc='tro - suinf']")).click();
-
-            waitAndClickById(driver, wait, "lblProtocoloDocumentoTextoBase");
-            driver.findElement(By.id("txtProtocoloDocumentoTextoBase")).sendKeys("2418322");
-
-            driver.findElement(By.id("lblPublico")).click();
-            driver.findElement(By.id("btnSalvar")).click();
-
-            closeAllPopupWindows(driver, mainWindow);
-
-            System.out.println("Fim Criação Tro");
-
-            System.out.println("Inicio Criação Anexo Em Branco");
-
-            switchToFrame(driver, "ifrArvore");
-
-            waitToBeClickableAndClickById(driver, wait, "topmenu");
-            driver.findElement(By.id("topmenu")).click();
-
-            Thread.sleep(500);
-
-            expandTree(driver);
-
-            List<String> spanText = new ArrayList<String>();
-
-            List<WebElement> we = driver.findElements(By.xpath("//span[text()[contains(.,'TRO - SUINF')]]"));
-            for (WebElement w : we) {
-                spanText.add(w.getText());
-                System.out.println(w.getText());
-            }
-
-            String troStr = spanText.get(spanText.size() - 1).substring(12, 16).trim();
-
-            troListCreated.add(troStr);
-
-            // clicar processo
-
-            driver.findElement(By.id("topmenu")).click();
-
-            Thread.sleep(3000);
-
-            driver.switchTo().defaultContent();
-
-            driver.switchTo().frame(1);
-
-            //clica em novo documento
-            driver.findElement(By.cssSelector("[src='imagens/sei_incluir_documento.gif']")).click();
-
-            //clica em externo
-
-            driver.findElement(By.cssSelector("[data-desc=' externo']")).click();
-
-            // seleciona externo
-
-            driver.findElement(By.id("selSerie")).click();
-//        select.selectByValue("263");
-            driver.findElement(By.cssSelector("[value='263']")).click();
-
-            driver.findElement(By.id("txtDataElaboracao")).sendKeys(todayStr);
-
-            driver.findElement(By.id("txtNumero")).sendKeys("TRO " + troStr + "/2020");
-
-            driver.findElement(By.id("lblNato")).click();
-
-            // selecionar publico
-
-            driver.findElement(By.id("lblPublico")).click();
-
-            driver.findElement(By.id("btnSalvar")).click();
-
-            // fim criação TRO e Anexo Em Branco
-
-        }
+        WebDriverWait wait = new WebDriverWait(driver, 30);
 
         System.out.println("Favor preencher os TROs abaixo no Infra:");
 
-        for (String l: troListCreated){
+        for (String l : troListCreated) {
             System.out.println(l);
         }
 
-        System.out.print("após registrar os TROs no Infra, tecle: 'SIM' :");
-        String resp = sc.next();
-        resp = resp.toLowerCase();
-        while (!resp.equals("sim")) {
+        System.out.println("após registrar os TROs no Infra, tecle: '1' :");
+        int resp = scan.nextInt();
+        while (resp != 1) {
             System.out.print("pronto ? ");
-            resp = sc.next();
-            resp = resp.toLowerCase();
+            resp = scan.nextInt();
         }
-
+        scan.nextLine();
 
         for (String tro : troListCreated) {
 
             // colar tro
 
             driver.switchTo().defaultContent();
+
+            String mainWindow = driver.getWindowHandle();
+
             switchToFrame(driver, "ifrArvore");
 
             waitToBeClickableAndClickById(driver, wait, "topmenu");
@@ -208,9 +259,9 @@ public class WebDriverTest {
 
             expandTree(driver);
 
-            wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//span[text()[contains(.,'TRO - SUINF "+ tro +"')]]")));
+            wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//span[text()[contains(.,'TRO - SUINF " + tro + "')]]")));
 
-            driver.findElement(By.xpath("//span[text()[contains(.,'TRO - SUINF "+ tro +"')]]")).click();
+            driver.findElement(By.xpath("//span[text()[contains(.,'TRO - SUINF " + tro + "')]]")).click();
 
             driver.switchTo().defaultContent();
 
@@ -220,8 +271,9 @@ public class WebDriverTest {
 
             Thread.sleep(3000);
 
-
             // change window
+
+            String secondWindow = "";
 
             for (String windowHandle : driver.getWindowHandles()) {
                 if (!mainWindow.contentEquals(windowHandle)) {
@@ -243,7 +295,6 @@ public class WebDriverTest {
             wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("cke_109")));
             driver.findElement(By.id("cke_109")).click();
 
-
             //By finding list of the web elements using frame or iframe tag
             Thread.sleep(5000);
 
@@ -262,78 +313,79 @@ public class WebDriverTest {
                     System.out.println("size = " + driver.findElements(By.id("cke_213_fileInput_input")).size());
                     System.out.println("entrou no if ni = " + i);
 
-
-//                    switchToFrame(driver, "cke_214_fileInput");
                     driver.switchTo().defaultContent();
                     driver.switchTo().frame(i);
                     WebElement fileInput = driver.findElement(By.id("cke_213_fileInput_input"));
                     fileInput.sendKeys("C:\\TROs.E.AIs\\TRO-" + tro + "-2020-COINFRS-SUINF.jpg");
                     Thread.sleep(5000);
-
-//                driver.findElement(By.id("cke_213_fileInput_input")).click();
                 }
             }
 
-                    System.out.println("apertando botão ok");
+            System.out.println("apertando botão ok");
 
-                    Pattern OkButton = new Pattern("E:\\QA.png");
-                    s.click(OkButton);
+            Pattern OkButton = new Pattern("E:\\QA.png");
 
+            for (String windowHandle : driver.getWindowHandles()) {
+                if (!mainWindow.contentEquals(windowHandle) && !secondWindow.contentEquals(windowHandle)) {
+                    driver.switchTo().window(windowHandle);
+                    break;
+                }
+            }
 
-                    //Salvar
-                    driver.switchTo().defaultContent();
+            try {
+                s.click(OkButton);
+            } catch (FindFailed findFailed) {
+                System.out.println("não foi localizado o botão Ok");
+                findFailed.printStackTrace();
+            }
 
-                    Thread.sleep(1000);
+            //Salvar
+            driver.switchTo().defaultContent();
 
-                    waitToBeClickableAndClickById(driver, wait, "cke_78");
+            Thread.sleep(1000);
 
-                    Thread.sleep(2000);
+            waitToBeClickableAndClickById(driver, wait, "cke_78");
 
-                    //Assinar
-                    waitToBeClickableAndClickById(driver, wait, "cke_80");
+            Thread.sleep(2000);
 
-                    // pegar a terceira janela
-                    for (String windowHandle : driver.getWindowHandles()) {
-                        if (!mainWindow.contentEquals(windowHandle) && !secondWindow.contentEquals(windowHandle)) {
-                            driver.switchTo().window(windowHandle);
-                            break;
-                        }
-                    }
+            //Assinar
+            waitToBeClickableAndClickById(driver, wait, "cke_80");
 
-                    driver.findElement(By.id("pwdSenha")).sendKeys(password);
-                    waitAndClickById(driver, wait, "btnAssinar");
+            // pegar a terceira janela
+            for (String windowHandle : driver.getWindowHandles()) {
+                if (!mainWindow.contentEquals(windowHandle) && !secondWindow.contentEquals(windowHandle)) {
+                    driver.switchTo().window(windowHandle);
+                    break;
+                }
+            }
 
-                    // criei uma lista de tro criados.
-                    // com essa lista, deve depois criar os Anexos.
+            driver.findElement(By.id("pwdSenha")).sendKeys(password);
+            waitAndClickById(driver, wait, "btnAssinar");
 
-                    // checar em qual pegou no bloco try abaixo.. mas funcionou !
+            driver.switchTo().window(mainWindow);
 
-                    driver.switchTo().window(mainWindow);
+            wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("ifrArvore")));
 
-                    wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("ifrArvore")));
+            driver.findElement(By.xpath("//span[text()[contains(.,'Anexo TRO " + tro + "' )]]")).click();
+            System.out.println("pegou no primeiro");
 
-                    driver.findElement(By.xpath("//span[text()[contains(.,'Anexo TRO " + tro + "' )]]")).click();
-                    System.out.println("pegou no primeiro");
+            driver.switchTo().defaultContent();
 
+            wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("ifrVisualizacao")));
 
-                    driver.switchTo().defaultContent();
+            driver.findElement(By.cssSelector("[title='Consultar/Alterar Documento Externo']")).click();
 
-                    wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("ifrVisualizacao")));
+            WebElement fileInput = driver.findElement(By.id("filArquivo"));
+            fileInput.sendKeys("C:\\Users\\elg10.DESKTOP-E8CTNI7\\OneDrive - ANTT- Agencia Nacional de Transportes Terrestres\\CRO\\Relatorios RTA\\" + tro + ".pdf");
 
-                    driver.findElement(By.cssSelector("[title='Consultar/Alterar Documento Externo']")).click();
+            System.out.println("Aguarda upload Arquivo");
 
-                    WebElement fileInput = driver.findElement(By.id("filArquivo"));
-                    fileInput.sendKeys("C:\\Users\\elg10.DESKTOP-E8CTNI7\\OneDrive - ANTT- Agencia Nacional de Transportes Terrestres\\CRO\\Relatorios RTA\\" + tro + ".pdf");
-
-                    System.out.println("Aguarda upload Arquivo");
-
-                    driver.switchTo().defaultContent();
-                    driver.switchTo().frame("ifrVisualizacao");
-                    wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[class='infraTrAcessada']")));
-                    waitAndClickById(driver, wait, "btnSalvar");
+            driver.switchTo().defaultContent();
+            driver.switchTo().frame("ifrVisualizacao");
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[class='infraTrAcessada']")));
+            waitAndClickById(driver, wait, "btnSalvar");
 
         }
-
     }
 
     private static void waitAndClickById(WebDriver driver, WebDriverWait wait, String id) {
@@ -376,12 +428,97 @@ public class WebDriverTest {
             if (!mainWindow.contentEquals(windowHandle)) {
                 driver.switchTo().window(windowHandle);
                 driver.close();
-
             }
-
         }
         driver.switchTo().window(mainWindow);
     }
 
+    private static void liberarParaAssinatura(WebDriver driver, WebDriverWait wait, List<String> troList) throws InterruptedException {
+
+        String mainWindow = driver.getWindowHandle();
+
+        expandTree(driver);
+
+        for(String tro: troList) {
+
+            driver.switchTo().defaultContent();
+            switchToFrame(driver, "ifrArvore");
+
+            waitToBeClickableAndClickById(driver, wait, "topmenu");
+            driver.findElement(By.id("topmenu")).click();
+            Thread.sleep(500);
+
+            wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//span[text()[contains(.,'TRO - SUINF " + tro + "')]]")));
+
+            driver.findElement(By.xpath("//span[text()[contains(.,'TRO - SUINF " + tro + "')]]")).click();
+
+            driver.switchTo().defaultContent();
+
+            switchToFrame(driver, "ifrVisualizacao");
+
+            driver.findElement(By.cssSelector("[src='imagens/sei_gerenciar_assinatura_externa.gif']")).click();
+
+            Thread.sleep(3000);
+
+            waitAndClickById(driver, wait, "selEmailUnidade");
+
+            driver.findElement(By.cssSelector("[value='ANTT/E-MAIL DA UNIDADE <COINFRS@ANTT.GOV.BR>']")).click();
+
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            js.executeScript("document.getElementById('hdnIdUsuario').setAttribute('value', '1000055')");
+
+            waitAndClickById(driver, wait, "imgLupaProtocolos");
+
+            Thread.sleep(3000);
+
+            for (String windowHandle : driver.getWindowHandles()) {
+                if (driver.findElements(By.id("hdnInfraNroItens")).size() > 0) {
+                    driver.switchTo().window(windowHandle);
+                    break;
+                }
+            }
+
+            for (String windowHandle : driver.getWindowHandles()) {
+                if (!mainWindow.equals(windowHandle)) {
+                    driver.switchTo().window(windowHandle);
+                    System.out.println("entrou no segundo");
+                    break;
+                }
+            }
+
+            WebElement table = driver.findElement(By.className("infraTable"));
+
+            List<WebElement> allrows = table.findElements(By.tagName("tr"));
+            int rowNumber = -1 ;
+            boolean flag = false;
+            for (WebElement row : allrows) {
+                if(flag){
+                    break;
+                }
+                int cellNumber = 0;
+                List<WebElement> cells = row.findElements(By.tagName("td"));
+
+                for (WebElement cell : cells) {
+
+                    if (cellNumber == 2) {
+                        if (cell.getText().contains("Anexo TRO " + tro)) {
+                            flag = true;
+                            js.executeScript("infraTransportarItem("+ rowNumber +",'Infra')");
+                            break;
+                        }
+                    }
+                    cellNumber++;
+                }
+                rowNumber++;
+            }
+            System.out.println(rowNumber);
+
+            driver.switchTo().window(mainWindow);
+            switchToFrame(driver, "ifrVisualizacao");
+
+            waitAndClickById(driver, wait, "btnLiberar");
+        }
+            driver.switchTo().window(mainWindow);
+    }
 }
 
