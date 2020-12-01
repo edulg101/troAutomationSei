@@ -29,9 +29,9 @@ public class WebDriverTest {
 
         String password = "xxx";
 
-        String user = "xxx";
+        String user = "";
 
-        String processo = "50520.009852/2020-13";
+        String processo = "50520.011059/2020-84";
 
         int resp = 0;
 
@@ -59,7 +59,7 @@ public class WebDriverTest {
 
                WebDriver driver = openBrowserAndProcesso(user, password, processo);
 
-               colarTrosEAnexos(driver, troListParaColar, password);
+               colarTrosEAnexos(driver, troListParaColar, password, false);
 
                System.exit(0);
            } else if (resp == 3) {
@@ -79,7 +79,7 @@ public class WebDriverTest {
                }
 
                WebDriver driver = openBrowserAndProcesso(user, password, processo);
-               WebDriverWait wait = new WebDriverWait(driver, 30);
+               WebDriverWait wait = new WebDriverWait(driver, 5);
 
                liberarParaAssinatura(driver, wait, troListParaColar);
                System.exit(0);
@@ -93,7 +93,7 @@ public class WebDriverTest {
                WebDriver driver = openBrowserAndProcesso(user, password, processo);
 
                String mainWindow = driver.getWindowHandle();
-               WebDriverWait wait = new WebDriverWait(driver, 30);
+               WebDriverWait wait = new WebDriverWait(driver, 10);
 
                for (int i = 1; i <= vezes; i++) {
 
@@ -186,7 +186,7 @@ public class WebDriverTest {
 
                    // fim criação TRO e Anexo Em Branco
                }
-               colarTrosEAnexos(driver, troListCreated, password);
+               colarTrosEAnexos(driver, troListCreated, password, true);
            } else {
                System.out.println("tente novamente");
            }
@@ -195,7 +195,10 @@ public class WebDriverTest {
 
     public static WebDriver openBrowserAndProcesso(String user, String password, String processo) throws InterruptedException {
 
-        System.setProperty("webdriver.chrome.driver", "E:\\chromedriver.exe");
+//        System.setProperty("webdriver.chrome.driver", "E:\\chromedriver.exe");
+
+        System.setProperty("webdriver.chrome.driver", "/home/eduardo/automation/chromedriver");
+
 
         WebDriver driver = new ChromeDriver();
 
@@ -221,13 +224,13 @@ public class WebDriverTest {
         return driver;
     }
 
-    public static void colarTrosEAnexos(WebDriver driver, List<String> troListCreated, String password ) throws InterruptedException {
+    public static void colarTrosEAnexos(WebDriver driver, List<String> troListCreated, String password, boolean confirmar ) throws InterruptedException {
 
         Scanner scan = new Scanner(System.in);
 
         Screen s = new Screen();
 
-        WebDriverWait wait = new WebDriverWait(driver, 30);
+        WebDriverWait wait = new WebDriverWait(driver, 10);
 
         System.out.println("Favor preencher os TROs abaixo no Infra:");
 
@@ -235,13 +238,15 @@ public class WebDriverTest {
             System.out.println(l);
         }
 
-        System.out.println("após registrar os TROs no Infra, tecle: '1' :");
-        int resp = scan.nextInt();
-        while (resp != 1) {
-            System.out.print("pronto ? ");
-            resp = scan.nextInt();
+        if(confirmar) {
+            System.out.println("após registrar os TROs no Infra, tecle: '1' :");
+            int resp = scan.nextInt();
+            while (resp != 1) {
+                System.out.print("pronto ? ");
+                resp = scan.nextInt();
+            }
+            scan.nextLine();
         }
-        scan.nextLine();
 
         for (String tro : troListCreated) {
 
@@ -296,60 +301,56 @@ public class WebDriverTest {
             driver.findElement(By.id("cke_109")).click();
 
             //By finding list of the web elements using frame or iframe tag
-            Thread.sleep(5000);
+//            Thread.sleep(5000);
 
-            List<WebElement> f = driver.findElements(By.tagName("iframe"));
-            System.out.println("Total number " + f.size());
+//            List<WebElement> f = driver.findElements(By.tagName("iframe"));
+//            System.out.println("Total number " + f.size());
+//
+//            List<WebElement> framesList = driver.findElements(By.xpath("//iframe"));
+//            int numOfFrames = framesList.size();
+//            System.out.println("numero frames= " + numOfFrames);
 
-            List<WebElement> framesList = driver.findElements(By.xpath("//iframe"));
-            int numOfFrames = framesList.size();
-            System.out.println("numero frames= " + numOfFrames);
+//            for (int i = 0; i < f.size(); i++) {
+//                driver.switchTo().defaultContent();
+//                driver.switchTo().frame(i);
+//                System.out.println("fora if i = " + i);
+//                if (driver.findElements(By.id("cke_220_uiElement")).size() != 0) {
+//                    System.out.println("size = " + driver.findElements(By.id("cke_220_uiElement")).size());
+//                    System.out.println("entrou no if ni = " + i);
+//
+//                    driver.switchTo().defaultContent();
+//                    driver.switchTo().frame(i);
+//
+//
+//                    Thread.sleep(5000);
+//                }
+//            }
 
-            for (int i = 0; i < f.size(); i++) {
-                driver.switchTo().defaultContent();
-                driver.switchTo().frame(i);
-                System.out.println("fora if i = " + i);
-                if (driver.findElements(By.id("cke_213_fileInput_input")).size() != 0) {
-                    System.out.println("size = " + driver.findElements(By.id("cke_213_fileInput_input")).size());
-                    System.out.println("entrou no if ni = " + i);
+            Thread.sleep(4000);
+            driver.switchTo().defaultContent();
+            driver.switchTo().frame("cke_213_fileInput");
+            WebElement fileInput = driver.findElement(By.id("cke_213_fileInput_input"));
 
-                    driver.switchTo().defaultContent();
-                    driver.switchTo().frame(i);
-                    WebElement fileInput = driver.findElement(By.id("cke_213_fileInput_input"));
-                    fileInput.sendKeys("C:\\TROs.E.AIs\\TRO-" + tro + "-2020-COINFRS-SUINF.jpg");
-                    Thread.sleep(5000);
-                }
-            }
+            fileInput.sendKeys("C:\\TROs.E.AIs\\TRO-" + tro + "-2020-COINFRS-SUINF.jpg");
 
-            System.out.println("apertando botão ok");
+            driver.switchTo().defaultContent();
 
-            Pattern OkButton = new Pattern("E:\\QA.png");
+            //clicar botão ok
 
-            for (String windowHandle : driver.getWindowHandles()) {
-                if (!mainWindow.contentEquals(windowHandle) && !secondWindow.contentEquals(windowHandle)) {
-                    driver.switchTo().window(windowHandle);
-                    break;
-                }
-            }
-
-            try {
-                s.click(OkButton);
-            } catch (FindFailed findFailed) {
-                System.out.println("não foi localizado o botão Ok");
-                findFailed.printStackTrace();
-            }
+            waitAndClickById(driver, wait, "cke_219_label");
 
             //Salvar
             driver.switchTo().defaultContent();
 
-            Thread.sleep(1000);
-
             waitToBeClickableAndClickById(driver, wait, "cke_78");
 
-            Thread.sleep(2000);
+            Thread.sleep(3000);
 
             //Assinar
             waitToBeClickableAndClickById(driver, wait, "cke_80");
+
+
+            Thread.sleep(3000);
 
             // pegar a terceira janela
             for (String windowHandle : driver.getWindowHandles()) {
@@ -375,8 +376,11 @@ public class WebDriverTest {
 
             driver.findElement(By.cssSelector("[title='Consultar/Alterar Documento Externo']")).click();
 
-            WebElement fileInput = driver.findElement(By.id("filArquivo"));
-            fileInput.sendKeys("C:\\Users\\elg10.DESKTOP-E8CTNI7\\OneDrive - ANTT- Agencia Nacional de Transportes Terrestres\\CRO\\Relatorios RTA\\" + tro + ".pdf");
+            fileInput = driver.findElement(By.id("filArquivo"));
+//            fileInput.sendKeys("C:\\TROs.E.AIs\\" + tro + ".pdf");
+
+            fileInput.sendKeys("/home/eduardo/automation/docs/" + tro + ".pdf");
+
 
             System.out.println("Aguarda upload Arquivo");
 
@@ -399,7 +403,7 @@ public class WebDriverTest {
     }
 
     private static void switchToFrame(WebDriver driver, String frameName) {
-        WebDriverWait wait = new WebDriverWait(driver, 30);
+        WebDriverWait wait = new WebDriverWait(driver, 10);
         driver.switchTo().defaultContent();
         wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id(frameName)));
     }
@@ -414,7 +418,7 @@ public class WebDriverTest {
         if (span.size() > 0) {
             span.remove(span.size() - 1);
         }
-        WebDriverWait wait = new WebDriverWait(driver, 30);
+        WebDriverWait wait = new WebDriverWait(driver, 10);
         for (WebElement e : span) {
 
             wait.until(ExpectedConditions.elementToBeClickable(e));
