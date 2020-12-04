@@ -1,19 +1,21 @@
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.*;
-import org.sikuli.script.FindFailed;
-import org.sikuli.script.Pattern;
-import org.sikuli.script.Screen;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class WebDriverTest {
 
-    public static void main(String[] args) throws InterruptedException, FindFailed {
+    //Windows
+//    public static final String DRIVERPATH = "E:\\chromedriver.exe";
+//    public static final String TROIMGPATH = "C:\\TROs.E.AIs\\";
+
+    //Linux
+    public static final String DRIVERPATH = "/home/eduardo/automation/chromedriver";
+    public static final String TROIMGPATH = "/home/eduardo/automation/docs/";
+
+    public static void main(String[] args) throws InterruptedException {
 
         // instanciando:
 
@@ -29,7 +31,7 @@ public class WebDriverTest {
 
         String password = "xxx";
 
-        String user = "";
+        String user = "xxx";
 
         String processo = "50520.011059/2020-84";
 
@@ -104,6 +106,8 @@ public class WebDriverTest {
                    waitToBeClickableAndClickById(driver, wait, "topmenu");
 
                    Thread.sleep(500);
+
+
 
                    waitToBeClickableAndClickById(driver, wait, "topmenu");
 
@@ -195,10 +199,7 @@ public class WebDriverTest {
 
     public static WebDriver openBrowserAndProcesso(String user, String password, String processo) throws InterruptedException {
 
-//        System.setProperty("webdriver.chrome.driver", "E:\\chromedriver.exe");
-
-        System.setProperty("webdriver.chrome.driver", "/home/eduardo/automation/chromedriver");
-
+        System.setProperty("webdriver.chrome.driver", DRIVERPATH);
 
         WebDriver driver = new ChromeDriver();
 
@@ -228,7 +229,6 @@ public class WebDriverTest {
 
         Scanner scan = new Scanner(System.in);
 
-        Screen s = new Screen();
 
         WebDriverWait wait = new WebDriverWait(driver, 10);
 
@@ -262,7 +262,12 @@ public class WebDriverTest {
             driver.findElement(By.id("topmenu")).click();
             Thread.sleep(500);
 
-            expandTree(driver);
+            try {
+                wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//span[text()[contains(.,'TRO - SUINF " + tro + "')]]")));
+            }
+            catch (RuntimeException e) {
+                expandTree(driver);
+            }
 
             wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//span[text()[contains(.,'TRO - SUINF " + tro + "')]]")));
 
@@ -290,15 +295,34 @@ public class WebDriverTest {
 
             driver.switchTo().defaultContent();
 
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("iframe[title='Editor de Rich Text, txaEditor_1931']")));
+            System.out.println("Maximiza janela");
+
+            driver.manage().window().setPosition(new Point(0, 0));
+
+            Dimension d = new Dimension(1500, 1000);
+            driver.manage().window().setSize(d);
+
+            Thread.sleep(2000);
+
+            driver.manage().window().setPosition(new Point(0, 0));
+
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("iframe[title='Editor de Rich Text, txaEditor_1931']")));
             driver.switchTo().frame(driver.findElement(By.cssSelector("iframe[title='Editor de Rich Text, txaEditor_1931']")));
 
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[class='Texto_Justificado_Recuo_Primeira_Linha']")));
+            Thread.sleep(2000);
+
+
+
+            wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("[class='Texto_Justificado_Recuo_Primeira_Linha']")));
             driver.findElement(By.cssSelector("[class='Texto_Justificado_Recuo_Primeira_Linha']")).click();
 
+            Thread.sleep(2000);
             driver.switchTo().defaultContent();
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("cke_109")));
-            driver.findElement(By.id("cke_109")).click();
+            waitToBeClickableAndClickById(driver, wait,"cke_109");
+
+
+//            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("")));
+//            driver.findElement(By.id("cke_109")).click();
 
             //By finding list of the web elements using frame or iframe tag
 //            Thread.sleep(5000);
@@ -329,9 +353,12 @@ public class WebDriverTest {
             Thread.sleep(4000);
             driver.switchTo().defaultContent();
             driver.switchTo().frame("cke_213_fileInput");
+
             WebElement fileInput = driver.findElement(By.id("cke_213_fileInput_input"));
 
-            fileInput.sendKeys("C:\\TROs.E.AIs\\TRO-" + tro + "-2020-COINFRS-SUINF.jpg");
+            fileInput.sendKeys(TROIMGPATH + "TRO-" + tro + "-2020-COINFRS-SUINF.jpg");
+
+            Thread.sleep(5000);
 
             driver.switchTo().defaultContent();
 
@@ -339,18 +366,36 @@ public class WebDriverTest {
 
             waitAndClickById(driver, wait, "cke_219_label");
 
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+
+
             //Salvar
             driver.switchTo().defaultContent();
 
             waitToBeClickableAndClickById(driver, wait, "cke_78");
 
-            Thread.sleep(3000);
 
+            System.out.println((Long)js.executeScript("return jQuery.active"));
+            System.out.println(js.executeScript(("return document.readyState")));
+//                   ((Long)executeJavaScript("return jQuery.active") == 0);
+
+
+            System.out.println((Long)js.executeScript("return jQuery.active"));
+            System.out.println(js.executeScript(("return document.readyState")));
+            System.out.println(js.executeScript("return jQuery.active"));
+            System.out.println(js.executeScript(("return document.readyState")));
+
+
+            Thread.sleep(5000);
+
+            driver.manage().window().setSize(d);
+
+            Thread.sleep(2000);
             //Assinar
             waitToBeClickableAndClickById(driver, wait, "cke_80");
 
 
-            Thread.sleep(3000);
+            Thread.sleep(5000);
 
             // pegar a terceira janela
             for (String windowHandle : driver.getWindowHandles()) {
@@ -359,6 +404,10 @@ public class WebDriverTest {
                     break;
                 }
             }
+
+            driver.manage().window().setSize(d);
+
+            Thread.sleep(2000);
 
             driver.findElement(By.id("pwdSenha")).sendKeys(password);
             waitAndClickById(driver, wait, "btnAssinar");
@@ -377,23 +426,26 @@ public class WebDriverTest {
             driver.findElement(By.cssSelector("[title='Consultar/Alterar Documento Externo']")).click();
 
             fileInput = driver.findElement(By.id("filArquivo"));
-//            fileInput.sendKeys("C:\\TROs.E.AIs\\" + tro + ".pdf");
 
-            fileInput.sendKeys("/home/eduardo/automation/docs/" + tro + ".pdf");
+            // windows
+            fileInput.sendKeys( TROIMGPATH + tro + ".pdf");
+
+//            linux
+//            fileInput.sendKeys(TROIMGPATH + tro + ".pdf");
 
 
             System.out.println("Aguarda upload Arquivo");
 
             driver.switchTo().defaultContent();
             driver.switchTo().frame("ifrVisualizacao");
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[class='infraTrAcessada']")));
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[class='infraTrAcessada']")));
             waitAndClickById(driver, wait, "btnSalvar");
 
         }
     }
 
     private static void waitAndClickById(WebDriver driver, WebDriverWait wait, String id) {
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(id)));
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.id(id)));
         driver.findElement(By.id(id)).click();
     }
 
@@ -441,7 +493,7 @@ public class WebDriverTest {
 
         String mainWindow = driver.getWindowHandle();
 
-        expandTree(driver);
+
 
         for(String tro: troList) {
 
@@ -451,6 +503,13 @@ public class WebDriverTest {
             waitToBeClickableAndClickById(driver, wait, "topmenu");
             driver.findElement(By.id("topmenu")).click();
             Thread.sleep(500);
+
+            try {
+                wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//span[text()[contains(.,'TRO - SUINF " + tro + "')]]")));
+            }
+            catch (RuntimeException e){
+                expandTree(driver);
+            }
 
             wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//span[text()[contains(.,'TRO - SUINF " + tro + "')]]")));
 
@@ -524,5 +583,36 @@ public class WebDriverTest {
         }
             driver.switchTo().window(mainWindow);
     }
+
+//    public boolean waitForJStoLoad() {
+//
+//        WebDriverWait wait = new WebDriverWait(driver, 30);
+//
+//        // wait for jQuery to load
+//        ExpectedCondition<Boolean> jQueryLoad = new ExpectedCondition<Boolean>() {
+//            @Override
+//            public Boolean apply(WebDriver driver) {
+//                try {
+//                    return ((Long)executeJavaScript("return jQuery.active") == 0);
+//                }
+//                catch (Exception e) {
+//                    return true;
+//                }
+//            }
+//        };
+//
+//        // wait for Javascript to load
+//        ExpectedCondition<Boolean> jsLoad = new ExpectedCondition<Boolean>() {
+//            @Override
+//            public Boolean apply(WebDriver driver) {
+//                return executeJavaScript("return document.readyState")
+//                        .toString().equals("complete");
+//            }
+//        };
+//
+//        return wait.until(jQueryLoad) && wait.until(jsLoad);
+//    }
+
+
 }
 
