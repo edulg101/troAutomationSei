@@ -15,6 +15,11 @@ public class WebDriverTest {
     public static final String DRIVERPATH = "/home/eduardo/automation/chromedriver";
     public static final String TROIMGPATH = "/home/eduardo/automation/docs/";
 
+    //VM
+//    public static final String DRIVERPATH = "/home/eduardo/automation/chromedriver";
+//    public static final String TROIMGPATH = "/media/sf_TROs.E.AIs/";
+
+
     public static void main(String[] args) throws InterruptedException {
 
         // instanciando:
@@ -29,11 +34,11 @@ public class WebDriverTest {
 
         List<String> troListCreated = new ArrayList<>();
 
-        String password = "xxx";
+        String password = "";
 
-        String user = "xxx";
+        String user = "";
 
-        String processo = "50520.011059/2020-84";
+        String processo = "50520.000017/2021-07";
 
         int resp = 0;
 
@@ -143,7 +148,7 @@ public class WebDriverTest {
 
                    expandTree(driver);
 
-                   List<String> spanText = new ArrayList<String>();
+                   List<String> spanText = new ArrayList<>();
 
                    List<WebElement> we = driver.findElements(By.xpath("//span[text()[contains(.,'TRO - SUINF')]]"));
                    for (WebElement w : we) {
@@ -178,7 +183,7 @@ public class WebDriverTest {
 
                    driver.findElement(By.id("txtDataElaboracao")).sendKeys(todayStr);
 
-                   driver.findElement(By.id("txtNumero")).sendKeys("TRO " + troStr + "/2020");
+                   driver.findElement(By.id("txtNumero")).sendKeys("TRO " + troStr + "/2021");
 
                    driver.findElement(By.id("lblNato")).click();
 
@@ -356,7 +361,7 @@ public class WebDriverTest {
 
             WebElement fileInput = driver.findElement(By.id("cke_213_fileInput_input"));
 
-            fileInput.sendKeys(TROIMGPATH + "TRO-" + tro + "-2020-COINFRS-SUINF.jpg");
+            fileInput.sendKeys(TROIMGPATH + "TRO-" + tro + "-2021-COINFRS-SUINF.jpg");
 
             Thread.sleep(5000);
 
