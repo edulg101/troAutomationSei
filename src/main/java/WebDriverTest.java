@@ -155,7 +155,14 @@ public class WebDriverTest {
                        spanText.add(w.getText());
                    }
 
-                   String troStr = spanText.get(spanText.size() - 1).substring(12, 16).trim();
+                   String element = spanText.get(spanText.size() - 1);
+                   String[] line;
+
+                   line = element.split(" ");
+
+                   String troStr = line[3];
+//                   String troStr = element.substring(12, 13);
+
 
                    troListCreated.add(troStr);
 
